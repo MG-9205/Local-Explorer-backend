@@ -1,0 +1,100 @@
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())  
+  clerkId   String   @unique 
+  email     String   @unique 
+  reviews     Review[]  
+  images      Image[]    
+  favorites   FavoritePlace[]              
+  createdAt DateTime @default(now())        
+}
+model Place {
+  id          String     @id @default(uuid())
+  name        String
+  address     String
+  description String
+  perImage    String
+  latitude    Float
+  longitude   Float
+  categoryId  String?
+  category    Category?  @relation(fields: [categoryId], references: [id])
+  reviews     Review[]   
+  images      Image[]    
+  favorites   FavoritePlace[]
+  tags        PlaceTag[] 
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  rating      Int      
+  comment     String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  placeId     String
+  place       Place    @relation(fields: [placeId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  images      Image[] 
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  places      Place[] 
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Image {
+  id          String   @id @default(uuid())
+  url         String
+  placeId     String
+  place       Place    @relation(fields: [placeId], references: [id])
+  uploadedById String
+  uploadedBy  User     @relation(fields: [uploadedById], references: [id])
+  reviewId    String?  
+  review      Review?  @relation(fields: [reviewId], references: [id])  
+  createdAt   DateTime @default(now())
+}
+
+
+model FavoritePlace {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  placeId     String
+  place       Place    @relation(fields: [placeId], references: [id])
+  createdAt   DateTime @default(now())
+  
+}
+
+model Tag {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  places      PlaceTag[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PlaceTag {
+  placeId     String
+  place       Place    @relation(fields: [placeId], references: [id])
+  tagId       String
+  tag         Tag      @relation(fields: [tagId], references: [id])
+
+  @@id([placeId, tagId]) 
+}
